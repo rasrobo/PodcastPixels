@@ -1,0 +1,10 @@
+# Virtual Environment
+podcast_pixels_env/
+*.pyc
+__pycache__/
+*.log
+
+# Temporary files and output videos
+*.mp4
+*.tmp
+/temp/
