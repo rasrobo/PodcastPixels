@@ -1,10 +1,13 @@
 import numpy as np
-from moviepy.editor import ColorClip, AudioFileClip
+from moviepy.video.io.VideoFileClip import VideoFileClip
+from moviepy.video.VideoClip import ColorClip
+from moviepy.audio.io.AudioFileClip import AudioFileClip
 import argparse
 import os
 import logging
 import tempfile
 import shutil
+from tqdm import tqdm
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -36,20 +39,41 @@ def create_simple_video(audio_path, output_path):
         logging.info(f"Creating simple video from audio: {audio_path}")
         
         try:
-            # Load the audio file
-            audio = AudioFileClip(audio_path)
+            # Load the audio file with progress indicator
+            logging.info("Loading audio file...")
+            with tqdm(desc="Loading audio", total=1) as pbar:
+                audio = AudioFileClip(audio_path)
+                pbar.update(1)
             
-            # Create a blank black video clip with the same duration as the audio
-            blank_clip = ColorClip(size=(1280, 720), color=(0, 0, 0), duration=audio.duration)
+            # Create a blank black video clip
+            logging.info("Creating video clip...")
+            with tqdm(desc="Creating video", total=1) as pbar:
+                blank_clip = ColorClip(size=(1280, 720), color=(0, 0, 0), duration=audio.duration)
+                pbar.update(1)
             
-            # Set the audio
-            video = blank_clip.set_audio(audio)
+            # Combine audio and video
+            logging.info("Combining audio and video...")
+            with tqdm(desc="Combining", total=1) as pbar:
+                video = blank_clip.with_audio(audio)
+                pbar.update(1)
             
             # Write the video file to the temporary location
-            video.write_videofile(temp_output_path, fps=30, logger=None)
+            logging.info("Writing video file...")
+            video.write_videofile(temp_output_path, fps=30, logger='bar')
             
-            # Copy the temporary file to the final output location
-            shutil.copy(temp_output_path, output_path)
+            # Move the temporary file to the final output location
+            logging.info("Moving to final location...")
+            with tqdm(desc="Finalizing", total=1) as pbar:
+                try:
+                    shutil.copy2(temp_output_path, output_path)
+                except PermissionError:
+                    logging.error(f"Permission denied when writing to {output_path}")
+                    logging.info("Try running the script with appropriate permissions or choose a different output location")
+                    raise
+                except OSError as e:
+                    logging.error(f"Failed to copy file: {str(e)}")
+                    raise
+                pbar.update(1)
             
             # Clean up
             audio.close()

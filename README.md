@@ -1,13 +1,16 @@
 # PodcastPixels
 
 ## Overview
-PodcastPixels is a versatile audio-to-video conversion tool that allows you to transform audio files into MP4 videos with optional visualization features.
+PodcastPixels is a versatile audio-to-video conversion tool that transforms audio files into MP4 videos with optional visualization features.
 
 ## Features
 - Simple audio to video conversion
-- Optional audio visualization types
+- YouTube upload preparation
 - Supports multiple audio formats
-- Customizable output options
+- Flexible output configuration
+- Progress indicators for conversion process
+- Optimized for quick audio-to-video conversion
+- Minimal processing overhead
 
 ## Installation
 ```bash
@@ -44,22 +47,39 @@ python podcast_pixels.py /path/to/audio.mp3 --vis_type bar_graph
 python podcast_pixels.py /path/to/audio.mp3 --output_path /custom/path/output.mp4
 ```
 
-## Visualization Types
-- `waveform`: Displays audio amplitude over time
-- `spectrogram`: Shows frequency intensity
-- `circular`: Radial frequency representation
-- `bar_graph`: Frequency magnitude bars
-
 ## Requirements
 - Python 3.7+
 - MoviePy
 - NumPy
+- tqdm (for progress bars)
 - Matplotlib
+
+## Roadmap
+- Implement basic visual components
+- Improve video writing performance
+- Add parallel processing capabilities
+- Develop user-friendly GUI
+- Static image background
+- Color gradient animations
+- Text overlay options
+
+## Contribution
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## Performance Tracking
+- Monitor video conversion times
+- Track file size transformations
+- Log processing steps for debugging
 
 ## License
 MIT License
 
 ## Donations
+**Note:** This project is actively developed with a "eat your own dog food" approach, ensuring practical and user-focused improvements.
 
 If you find this code useful and would like to support its development, you can buy me a coffee! Your support is greatly appreciated.
 

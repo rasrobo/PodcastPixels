@@ -1,3 +1,5 @@
 numpy
 moviepy
+tqdm
 matplotlib
+pillow
