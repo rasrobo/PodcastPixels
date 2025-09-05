@@ -23,7 +23,7 @@ def validate_paths(audio_path, output_directory):
         os.makedirs(output_directory)
         logging.info(f"Created output directory: {output_directory}")
 
-def create_simple_video(audio_path, output_path):
+def create_simple_video(audio_path, output_path, output_format='mp4'):
     """
     Convert audio to a simple video with a blank background
     """
@@ -34,7 +34,7 @@ def create_simple_video(audio_path, output_path):
     # Use system's temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
         # Generate a temporary output path in the system's temp directory
-        temp_output_path = os.path.join(temp_dir, 'temp_video.mp4')
+        temp_output_path = os.path.join(temp_dir, f'temp_video.{output_format}')
         
         logging.info(f"Creating simple video from audio: {audio_path}")
         
@@ -66,10 +66,28 @@ def create_simple_video(audio_path, output_path):
             with tqdm(desc="Finalizing", total=1) as pbar:
                 try:
                     shutil.copy2(temp_output_path, output_path)
+                    logging.info(f"Video saved to: {output_path}")
                 except PermissionError:
-                    logging.error(f"Permission denied when writing to {output_path}")
-                    logging.info("Try running the script with appropriate permissions or choose a different output location")
-                    raise
+                    logging.warning(f"Permission denied when writing to {output_path}")
+                    # Try alternative locations for WSL compatibility
+                    fallback_locations = [
+                        os.path.join(os.path.expanduser("~"), "danyoga41.mp4"),
+                        os.path.join("/tmp", "danyoga41.mp4"),
+                        os.path.join(os.getcwd(), "danyoga41.mp4")
+                    ]
+                    
+                    for fallback_path in fallback_locations:
+                        try:
+                            shutil.copy2(temp_output_path, fallback_path)
+                            logging.info(f"Video saved to fallback location: {fallback_path}")
+                            output_path = fallback_path
+                            break
+                        except Exception as fallback_error:
+                            logging.debug(f"Fallback location {fallback_path} failed: {fallback_error}")
+                            continue
+                    else:
+                        logging.error("All output locations failed. Check permissions and try again.")
+                        raise PermissionError(f"Could not write to any location. Try specifying --output_path with a writable directory.")
                 except OSError as e:
                     logging.error(f"Failed to copy file: {str(e)}")
                     raise
@@ -85,17 +103,22 @@ def create_simple_video(audio_path, output_path):
             logging.error(f"Error during video creation: {str(e)}")
             raise
 
-def create_audio_visualization(audio_path, output_path, vis_type):
+def create_audio_visualization(audio_path, output_path, vis_type, output_format='mp4'):
     """
     Create an audio visualization video
     """
     logging.warning(f"Visualization type '{vis_type}' not implemented yet")
-    create_simple_video(audio_path, output_path)
+    create_simple_video(audio_path, output_path, output_format)
 
 def parse_arguments():
+    # Supported video formats
+    supported_formats = ['mp4', 'mov', 'mpeg1', 'mpeg2', 'mpeg4', 'mpg', 'avi', 'wmv', 'mpegps', 'flv', '3gpp', 'webm']
+    
     parser = argparse.ArgumentParser(description='Convert audio to video')
     parser.add_argument('audio_path', type=str, help='Path to the input audio file')
     parser.add_argument('--output_path', type=str, help='Path to the output video file (optional)')
+    parser.add_argument('--format', type=str, choices=supported_formats, default='mp4',
+                        help='Output video format (default: mp4)')
     parser.add_argument('--vis_type', type=str, choices=['waveform', 'spectrogram', 'circular', 'bar_graph'],
                         help='Create a visualization video instead of a simple conversion')
     return parser.parse_args()
@@ -107,19 +130,23 @@ if __name__ == "__main__":
         # Get the input audio file path
         audio_path = args.audio_path
         
-        # If no output path is specified, set the output path to the same directory as the input audio file
+        # If no output path is specified, set the output path to the same directory as the source file
         if args.output_path:
             output_path = args.output_path
         else:
+            # Always save in the same directory as the source file
             output_directory = os.path.dirname(audio_path)
-            output_filename = os.path.splitext(os.path.basename(audio_path))[0] + '.mp4'
+            
+            # Use the selected format for the output file extension
+            output_filename = os.path.splitext(os.path.basename(audio_path))[0] + '.' + args.format
             output_path = os.path.join(output_directory, output_filename)
+            logging.info(f"Output will be saved to: {output_path}")
         
         # Create video based on visualization flag
         if args.vis_type:
-            create_audio_visualization(audio_path, output_path, args.vis_type)
+            create_audio_visualization(audio_path, output_path, args.vis_type, args.format)
         else:
-            create_simple_video(audio_path, output_path)
+            create_simple_video(audio_path, output_path, args.format)
         
         logging.info("Script completed successfully")
     except Exception as e:
