@@ -21,6 +21,12 @@ source podcast_pixels_env/bin/activate
 pip install -r requirements.txt
 ```
 
+### Optional extras for visualizations
+Some visualizations may require additional libraries. Install optional extras only if you need them:
+```bash
+pip install matplotlib pillow numpy
+```
+
 ## Usage
 ### Basic Audio to Video Conversion
 ```bash
@@ -47,12 +53,24 @@ python podcast_pixels.py /path/to/audio.mp3 --vis_type bar_graph
 python podcast_pixels.py /path/to/audio.mp3 --output_path /custom/path/output.mp4
 ```
 
+### Performance/quality flags
+```bash
+# Faster encode, smaller file, web-friendly
+python podcast_pixels.py input.mp3 \
+  --fps 24 \
+  --preset faster \
+  --crf 23 \
+  --threads 0 \
+  --audio_bitrate 128k \
+  --pixel_format yuv420p \
+  --faststart
+```
+
 ## Requirements
 - Python 3.7+
 - MoviePy
-- NumPy
 - tqdm (for progress bars)
-- Matplotlib
+- Optional: NumPy, Matplotlib, Pillow (for advanced visualizations)
 
 ## Roadmap
 - Implement basic visual components
